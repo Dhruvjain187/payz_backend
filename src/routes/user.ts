@@ -6,7 +6,7 @@ import dotenv from "dotenv"
 import prisma from "../database/client.js"
 import { SigninRequest, SignupRequest, UserResponse } from "../types/user.js"
 import bcrypt from "bcryptjs"
-import { authMiddleware } from "../middleware.js"
+import { authMiddleware, rateLimiter } from "../middleware.js"
 
 dotenv.config()
 
@@ -14,7 +14,7 @@ const router = express.Router()
 
 const signupSchema = zod.object({
     username: zod.string(),
-    passsword: zod.string().min(5),
+    password: zod.string().min(5),
     firstName: zod.string(),
     lastName: zod.string(),
 })
@@ -30,7 +30,7 @@ const updateBody = zod.object({
     lastName: zod.string().optional(),
 });
 
-router.post("/", async (req, res) => {
+router.post("/signup", async (req, res) => {
     const userObj: SignupRequest = req.body;
     const response = signupSchema.safeParse(userObj)
 
@@ -79,7 +79,7 @@ router.post("/", async (req, res) => {
 
 
 
-router.post("/signin", async (req, res) => {
+router.post("/signin", rateLimiter, async (req, res) => {
     const userObj: SigninRequest = req.body;
     const response = signinSchema.safeParse(userObj);
 
