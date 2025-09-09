@@ -110,6 +110,8 @@ router.post("/signin", rateLimiter, async (req, res) => {
         const token = jwt.sign({ userId }, process.env.JWT_SECRET!);
 
         res.json({
+            id: user.id,
+            username: user.username,
             token: token,
         });
     } else {
@@ -155,22 +157,61 @@ router.put("/", authMiddleware, async (req, res) => {
 
 
 
-router.get("/bulk", async (req, res) => {
+router.get("/bulk", authMiddleware, async (req, res) => {
     const filter = (req.query.filter as string) || "";
 
     try {
         const users = await prisma.user.findMany({
             where: {
-                OR: [
-                    { firstName: { contains: filter, mode: "insensitive" } },
-                    { lastName: { contains: filter, mode: "insensitive" } },
-                ],
+                AND: [
+                    {
+                        id: {
+                            not: req.userId // Exclude current user
+                        }
+                    },
+                    {
+                        OR: [
+                            { firstName: { contains: filter, mode: "insensitive" } },
+                            { lastName: { contains: filter, mode: "insensitive" } },
+                        ]
+                    }
+                ]
             },
             select: {
                 id: true,
                 username: true,
                 firstName: true,
                 lastName: true,
+            },
+        });
+
+        res.json({ users });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+});
+
+router.get("/personalInfo", authMiddleware, async (req, res) => {
+    console.log("userid=", req.userId)
+    try {
+        const users = await prisma.user.findUnique({
+            where: {
+                id: req.userId
+            },
+            select: {
+                id: true,
+                username: true,
+                firstName: true,
+                lastName: true,
+                account: {
+                    select: {
+                        id: true,
+                        balance: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    }
+                }
             },
         });
 
