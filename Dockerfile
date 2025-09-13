@@ -1,21 +1,16 @@
 FROM node:18-alpine
-
 WORKDIR /app
-
-# Copy package files
 COPY package*.json ./
-
-# Install all dependencies (including dev dependencies for TypeScript compilation)
 RUN npm install
 
-# Copy source code (excluding node_modules via .dockerignore)
+# Install dos2unix to fix line endings
+RUN apk add --no-cache dos2unix
+
 COPY . .
 
-# Make start script executable
+# Convert line endings and make executable
+RUN dos2unix start.sh
 RUN chmod +x start.sh
 
-# Expose port
 EXPOSE 5000
-
-# Use start script as entrypoint
 CMD ["./start.sh"]

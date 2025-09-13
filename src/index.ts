@@ -7,6 +7,8 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const app = express()
+const port = process.env.PORT || 5000
+
 app.use(cors({
     origin: "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -26,6 +28,6 @@ app.get("/health", (req, res) => {
 app.use("/api/v1", rootRouter);
 
 
-app.listen(5000, () => {
-    console.log("listening at port 5000")
+app.listen(port, () => {
+    console.log(`listening at port ${port}`)
 })
