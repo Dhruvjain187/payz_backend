@@ -25,6 +25,13 @@ app.get("/health", (req, res) => {
     res.send("ok")
 })
 
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    console.log('Headers:', req.headers);
+    console.log('Body:', req.body);
+    next();
+});
+
 app.use("/api/v1", rootRouter);
 
 
